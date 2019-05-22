@@ -5,6 +5,8 @@ from math import pi, cos, sin, atan2
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 255, 255)
+BLOCK_SIZE = 40
+
 
 
 wall1 = pygame.image.load('wall/wall1.png')
@@ -20,18 +22,17 @@ textures = {
   "4": wall4,
   "5": wall5,
 }
-
 hand = pygame.image.load('player/player.png')
 
 enemies = [
   {
-    "x": 100,
-    "y": 200,
+    "x": 95,
+    "y": 95,
     "texture": pygame.image.load('sprite/sprite2.png')
   },
   {
     "x": 280,
-    "y": 190,
+    "y": 100,
     "texture": pygame.image.load('sprite/sprite3.png')
   },
   {
@@ -55,7 +56,7 @@ class Raycaster(object):
   def __init__(self, screen):
     _, _, self.width, self.height = screen.get_rect()
     self.screen = screen
-    self.blocksize = 50
+    self.blocksize = BLOCK_SIZE
     self.player = {
       "x": self.blocksize + 20,
       "y": self.blocksize + 20,
@@ -78,14 +79,6 @@ class Raycaster(object):
   def point(self, x, y, c = None):
     screen.set_at((x, y), c)
 
-  def draw_rectangle(self, x, y, texture):
-    for cx in range(x, x + 50):
-      for cy in range(y, y + 50):
-        tx = int((cx - x)*128 / 50)
-        ty = int((cy - y)*128 / 50)
-        c = texture.get_at((tx, ty))
-        self.point(cx, cy, c)
-
   def load_map(self, filename):
     with open(filename) as f:
       for line in f.readlines():
@@ -97,23 +90,21 @@ class Raycaster(object):
       x = self.player["x"] + d*cos(a)
       y = self.player["y"] + d*sin(a)
 
-      i = int(x/50)
-      j = int(y/50)
+      i = int(x/BLOCK_SIZE)
+      j = int(y/BLOCK_SIZE)
 
       if self.map[j][i] != ' ':
-        hitx = x - i*50
-        hity = y - j*50
+        hitx = x - i*BLOCK_SIZE
+        hity = y - j*BLOCK_SIZE
 
-        if 1 < hitx < 49:
+        if 1 < hitx < BLOCK_SIZE - 1:
           maxhit = hitx
         else:
           maxhit = hity
 
-        tx = int(maxhit * 128 / 50)
+        tx = int(maxhit * 128 / BLOCK_SIZE)
 
         return d, self.map[j][i], tx
-
-      #self.point(int(x), int(y), (255, 255, 255))
 
       d += 1
 
@@ -127,11 +118,10 @@ class Raycaster(object):
 
   def draw_sprite(self, sprite):
     sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"])   # why atan2? https://stackoverflow.com/a/12011762
-
     sprite_d = ((self.player["x"] - sprite["x"])**2 + (self.player["y"] - sprite["y"])**2)**0.5
-    sprite_size = (500/sprite_d) * 70
+    sprite_size = (250/sprite_d) * 70
 
-    sprite_x = 500 + (sprite_a - self.player["a"])*500/self.player["fov"] + 250 - sprite_size/2
+    sprite_x = (sprite_a - self.player["a"])*500/self.player["fov"] + 250 - sprite_size/2
     sprite_y = 250 - sprite_size/2
 
     sprite_x = int(sprite_x)
@@ -140,13 +130,13 @@ class Raycaster(object):
 
     for x in range(sprite_x, sprite_x + sprite_size):
       for y in range(sprite_y, sprite_y + sprite_size):
-        if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d:
+        if  0 < x < 500 and self.zbuffer[x] >= sprite_d:
           tx = int((x - sprite_x) * 128/sprite_size)
           ty = int((y - sprite_y) * 128/sprite_size)
           c = sprite["texture"].get_at((tx, ty))
           if c != (152, 0, 136, 255):
             self.point(x, y, c)
-            self.zbuffer[x - 500] = sprite_d
+            self.zbuffer[x] = sprite_d
 
   def draw_player(self, xi, yi, w = 256, h = 256):
     for x in range(xi, xi + w):
@@ -158,20 +148,6 @@ class Raycaster(object):
           self.point(x, y, c)
 
   def render(self):
-   # for x in range(0, 500, 50):
-    #  for y in range(0, 500, 50):
-     #   i = int(x/50)
-      #  j = int(y/50)
-       # if self.map[j][i] != ' ':
-        #  self.draw_rectangle(x, y, textures[self.map[j][i]])
-
-    # self.point(self.player["x"], self.player["y"], (255, 255, 255))
-
-    #for i in range(0, 500):
-      #self.point(500, i, (0, 0, 0))
-      #self.point(501, i, (0, 0, 0))
-      #self.point(499, i, (0, 0, 0))
-
     for i in range(0, 500):
       a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/500
       d, c, tx = self.cast_ray(a)
@@ -184,7 +160,7 @@ class Raycaster(object):
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
-    self.draw_player(1000 - 256 - 128, 500 - 256)
+    self.draw_player(500 - 256 - 125, 500 - 256)
 
 pygame.init()
 screen = pygame.display.set_mode((500, 500), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN|pygame.HWSURFACE)
