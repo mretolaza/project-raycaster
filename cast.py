@@ -5,8 +5,10 @@ from math import pi, cos, sin, atan2
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 255, 255)
-BLOCK_SIZE = 40
-
+BLOCK_SIZE = 50
+HALF_SCREEN = 250
+SCREEN_SIZE = 500
+ZOOM = 70
 
 
 wall1 = pygame.image.load('wall/wall1.png')
@@ -64,7 +66,7 @@ class Raycaster(object):
       "fov": pi/3
     }
     self.map = []
-    self.zbuffer = [-float('inf') for z in range(0, 500)]
+    self.zbuffer = [-float('inf') for z in range(0, SCREEN_SIZE)]
     # self.clear()
 
   def clear(self):
@@ -109,20 +111,20 @@ class Raycaster(object):
       d += 1
 
   def draw_stake(self, x, h, texture, tx):
-    start = int(250 - h/2)
-    end = int(250 + h/2)
+    start = int(HALF_SCREEN - h/2)
+    end = int(HALF_SCREEN + h/2)
     for y in range(start, end):
       ty = int(((y - start)*128)/(end - start))
       c = texture.get_at((tx, ty))
       self.point(x, y, c)
 
   def draw_sprite(self, sprite):
-    sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"])   # why atan2? https://stackoverflow.com/a/12011762
+    sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"]) 
     sprite_d = ((self.player["x"] - sprite["x"])**2 + (self.player["y"] - sprite["y"])**2)**0.5
-    sprite_size = (250/sprite_d) * 70
+    sprite_size = (HALF_SCREEN/sprite_d) * ZOOM
 
-    sprite_x = (sprite_a - self.player["a"])*500/self.player["fov"] + 250 - sprite_size/2
-    sprite_y = 250 - sprite_size/2
+    sprite_x = (sprite_a - self.player["a"])*SCREEN_SIZE/self.player["fov"] + HALF_SCREEN - sprite_size/2
+    sprite_y = HALF_SCREEN - sprite_size/2
 
     sprite_x = int(sprite_x)
     sprite_y = int(sprite_y)
@@ -130,7 +132,7 @@ class Raycaster(object):
 
     for x in range(sprite_x, sprite_x + sprite_size):
       for y in range(sprite_y, sprite_y + sprite_size):
-        if  0 < x < 500 and self.zbuffer[x] >= sprite_d:
+        if  0 < x < SCREEN_SIZE and self.zbuffer[x] >= sprite_d:
           tx = int((x - sprite_x) * 128/sprite_size)
           ty = int((y - sprite_y) * 128/sprite_size)
           c = sprite["texture"].get_at((tx, ty))
@@ -148,11 +150,11 @@ class Raycaster(object):
           self.point(x, y, c)
 
   def render(self):
-    for i in range(0, 500):
-      a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/500
+    for i in range(0, SCREEN_SIZE):
+      a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/SCREEN_SIZE
       d, c, tx = self.cast_ray(a)
       x = i
-      h = 500/(d*cos(a-self.player["a"])) * 70
+      h = SCREEN_SIZE/(d*cos(a-self.player["a"])) * ZOOM
       self.draw_stake(x, h, textures[c], tx)
       self.zbuffer[i] = d
 
@@ -160,10 +162,15 @@ class Raycaster(object):
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
-    self.draw_player(500 - 256 - 125, 500 - 256)
+    self.draw_player(SCREEN_SIZE - 256 - 125, SCREEN_SIZE - 256)
 
 pygame.init()
-screen = pygame.display.set_mode((500, 500), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN|pygame.HWSURFACE)
+screen = pygame.display.set_mode(
+  (
+    SCREEN_SIZE, 
+    SCREEN_SIZE
+  ), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN|pygame.HWSURFACE)
+
 screen.set_alpha(None)
 r = Raycaster(screen)
 r.load_map('./map.txt')
@@ -193,8 +200,8 @@ while True:
 
       if e.key == pygame.K_f:
         if screen.get_flags() and pygame.FULLSCREEN:
-            pygame.display.set_mode((500, 500))
+            pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
         else:
-            pygame.display.set_mode((500, 500),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
+            pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
 
   pygame.display.flip()
