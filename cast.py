@@ -162,7 +162,7 @@ class Raycaster(object):
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
-    self.draw_player(SCREEN_SIZE - 256 - 125, SCREEN_SIZE - 256)
+    self.draw_player(SCREEN_SIZE - 256 - 128, SCREEN_SIZE - 256)
 
 pygame.init()
 screen = pygame.display.set_mode(
