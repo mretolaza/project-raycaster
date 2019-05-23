@@ -1,4 +1,6 @@
 import pygame
+import cProfile
+import re
 from math import pi, cos, sin, atan2
 
 
@@ -6,9 +8,10 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 255, 255)
 BLOCK_SIZE = 50
-HALF_SCREEN = 250
-SCREEN_SIZE = 500
+HALF_SCREEN = 200
+SCREEN_SIZE = 400
 ZOOM = 70
+SPRTEX_SIZE = 126
 
 
 wall1 = pygame.image.load('wall/wall1.png')
@@ -67,7 +70,7 @@ class Raycaster(object):
     }
     self.map = []
     self.zbuffer = [-float('inf') for z in range(0, SCREEN_SIZE)]
-    # self.clear()
+    self.clear()
 
   def clear(self):
     for x in range(self.width):
@@ -104,7 +107,7 @@ class Raycaster(object):
         else:
           maxhit = hity
 
-        tx = int(maxhit * 128 / BLOCK_SIZE)
+        tx = int(maxhit * SPRTEX_SIZE / BLOCK_SIZE)
 
         return d, self.map[j][i], tx
 
@@ -114,7 +117,7 @@ class Raycaster(object):
     start = int(HALF_SCREEN - h/2)
     end = int(HALF_SCREEN + h/2)
     for y in range(start, end):
-      ty = int(((y - start)*128)/(end - start))
+      ty = int(((y - start)*SPRTEX_SIZE)/(end - start))
       c = texture.get_at((tx, ty))
       self.point(x, y, c)
 
@@ -133,8 +136,8 @@ class Raycaster(object):
     for x in range(sprite_x, sprite_x + sprite_size):
       for y in range(sprite_y, sprite_y + sprite_size):
         if  0 < x < SCREEN_SIZE and self.zbuffer[x] >= sprite_d:
-          tx = int((x - sprite_x) * 128/sprite_size)
-          ty = int((y - sprite_y) * 128/sprite_size)
+          tx = int((x - sprite_x) * SPRTEX_SIZE/sprite_size)
+          ty = int((y - sprite_y) * SPRTEX_SIZE/sprite_size)
           c = sprite["texture"].get_at((tx, ty))
           if c != (152, 0, 136, 255):
             self.point(x, y, c)
@@ -162,7 +165,7 @@ class Raycaster(object):
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
-    self.draw_player(SCREEN_SIZE - 256 - 128, SCREEN_SIZE - 256)
+    self.draw_player(SCREEN_SIZE - 256 - SPRTEX_SIZE, SCREEN_SIZE - 256)
 
 pygame.init()
 screen = pygame.display.set_mode(
@@ -174,6 +177,7 @@ screen = pygame.display.set_mode(
 screen.set_alpha(None)
 r = Raycaster(screen)
 r.load_map('./map.txt')
+cProfile.run('re.compile("foo|bar")')
 
 c = 0
 while True:
@@ -188,7 +192,6 @@ while True:
         r.player["a"] -= pi/10
       elif e.key == pygame.K_d:
         r.player["a"] += pi/10
-
       elif e.key == pygame.K_RIGHT:
         r.player["x"] += 10
       elif e.key == pygame.K_LEFT:
