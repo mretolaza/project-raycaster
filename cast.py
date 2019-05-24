@@ -12,6 +12,7 @@ HALF_SCREEN = 200
 SCREEN_SIZE = 400
 ZOOM = 70
 SPRTEX_SIZE = 126
+RESOLUTION_SPRITE= 256
 
 
 wall1 = pygame.image.load('wall/wall1.png')
@@ -33,7 +34,7 @@ enemies = [
   {
     "x": 95,
     "y": 95,
-    "texture": pygame.image.load('sprite/sprite2.png')
+    "texture": pygame.image.load('sprite/sprite1.png')
   },
   {
     "x": 280,
@@ -143,7 +144,7 @@ class Raycaster(object):
             self.point(x, y, c)
             self.zbuffer[x] = sprite_d
 
-  def draw_player(self, xi, yi, w = 256, h = 256):
+  def draw_player(self, xi, yi, w = RESOLUTION_SPRITE, h = RESOLUTION_SPRITE):
     for x in range(xi, xi + w):
       for y in range(yi, yi + h):
         tx = int((x - xi) * 32/w)
@@ -165,7 +166,7 @@ class Raycaster(object):
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
-    self.draw_player(SCREEN_SIZE - 256 - SPRTEX_SIZE, SCREEN_SIZE - 256)
+    self.draw_player(SCREEN_SIZE - RESOLUTION_SPRITE - SPRTEX_SIZE, SCREEN_SIZE - RESOLUTION_SPRITE)
 
 pygame.init()
 screen = pygame.display.set_mode(
