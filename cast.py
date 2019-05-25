@@ -1,12 +1,13 @@
 import pygame
 import cProfile
+from random import randint
 import re
 from math import pi, cos, sin, atan2
 
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-BACKGROUND = (0, 255, 255)
+BACKGROUND = (158,75,9)
 BLOCK_SIZE = 50
 HALF_SCREEN = 200
 SCREEN_SIZE = 400
@@ -19,7 +20,7 @@ wall1 = pygame.image.load('wall/wall1.png')
 wall2 = pygame.image.load('wall/wall2.png')
 wall3 = pygame.image.load('wall/wall3.png')
 wall4 = pygame.image.load('wall/wall4.png')
-wall5 = pygame.image.load('wall/wall5.png')
+wall5 = pygame.image.load('wall/wall5.jpg')
 
 textures = {
   "1": wall1,
@@ -34,7 +35,7 @@ enemies = [
   {
     "x": 95,
     "y": 95,
-    "texture": pygame.image.load('sprite/sprite1.png')
+    "texture": pygame.image.load('sprite/sprite2.png')
   },
   {
     "x": 280,
@@ -154,19 +155,31 @@ class Raycaster(object):
           self.point(x, y, c)
 
   def render(self):
+
     for i in range(0, SCREEN_SIZE):
       a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/SCREEN_SIZE
       d, c, tx = self.cast_ray(a)
       x = i
-      h = SCREEN_SIZE/(d*cos(a-self.player["a"])) * ZOOM
+      if d == 0: 
+        continue
+      else: 
+        h = SCREEN_SIZE/(d*cos(a-self.player["a"])) * ZOOM
       self.draw_stake(x, h, textures[c], tx)
       self.zbuffer[i] = d
-
+         
     for enemy in enemies:
       self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
     self.draw_player(SCREEN_SIZE - RESOLUTION_SPRITE - SPRTEX_SIZE, SCREEN_SIZE - RESOLUTION_SPRITE)
+
+    def play_sound(): 
+      pygame.mixer.init(40000,16,2,1024)
+      soundsArray = ['music/son1.min','music/son2.min','music/son3.min','music/son4.min']
+      num = random.randint(0,4)
+      sound = pygame.mixer.Sound(soundsArray[num])
+      sound.set_volume(1)
+      sound.play()
 
 pygame.init()
 screen = pygame.display.set_mode(
@@ -182,7 +195,7 @@ cProfile.run('re.compile("foo|bar")')
 
 c = 0
 while True:
-  screen.fill((113, 113, 113))
+  screen.fill((BACKGROUND))
   r.render()
 
   for e in pygame.event.get():
@@ -193,6 +206,7 @@ while True:
         r.player["a"] -= pi/10
       elif e.key == pygame.K_d:
         r.player["a"] += pi/10
+
       elif e.key == pygame.K_RIGHT:
         r.player["x"] += 10
       elif e.key == pygame.K_LEFT:
