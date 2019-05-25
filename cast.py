@@ -67,8 +67,8 @@ class Raycaster(object):
     self.player = {
       "x": self.blocksize + 20,
       "y": self.blocksize + 20,
-      "a": pi/3,
-      "fov": pi/3
+      "a": pi/4,
+      "fov": pi/4
     }
     self.map = []
     self.zbuffer = [-float('inf') for z in range(0, SCREEN_SIZE)]
@@ -173,15 +173,16 @@ class Raycaster(object):
 
     self.draw_player(SCREEN_SIZE - RESOLUTION_SPRITE - SPRTEX_SIZE, SCREEN_SIZE - RESOLUTION_SPRITE)
 
-    def play_sound(): 
-      pygame.mixer.init(40000,16,2,1024)
-      soundsArray = ['music/son1.min','music/son2.min','music/son3.min','music/son4.min']
-      num = random.randint(0,4)
-      sound = pygame.mixer.Sound(soundsArray[num])
-      sound.set_volume(1)
-      sound.play()
+  def po(): 
+    pygame.mixer.init(40000,16,2,1024) #para musica de fondo
+    soundsArray = ['music/son1.min','music/son2.min','music/son3.min','music/son4.min']
+    num = random.randint(0, 5)
+    sound = pygame.mixer.Sound(soundsArray[num])
+    sound.set_volume(1)
+    sound.play()
 
 pygame.init()
+
 screen = pygame.display.set_mode(
   (
     SCREEN_SIZE, 
@@ -201,20 +202,24 @@ while True:
   for e in pygame.event.get():
     if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
       exit(0)
+      pygame.display.quit()
+      pygame.quit()
     if e.type == pygame.KEYDOWN:
       if e.key == pygame.K_a:
-        r.player["a"] -= pi/10
+        r.player["a"] -= pi/60
       elif e.key == pygame.K_d:
-        r.player["a"] += pi/10
+        r.player["a"] += pi/60
 
       elif e.key == pygame.K_RIGHT:
         r.player["x"] += 10
       elif e.key == pygame.K_LEFT:
         r.player["x"] -= 10
       elif e.key == pygame.K_UP:
-        r.player["y"] += 10
+        r.player["x"] += 10 *cos(r.player["a"])
+        r.player["y"] += 10 *sin(r.player["a"])   
       elif e.key == pygame.K_DOWN:
-        r.player["y"] -= 10
+        r.player["x"] -= 10 *cos(r.player["a"])
+        r.player["y"] -= 10 *sin(r.player["a"])
 
       if e.key == pygame.K_f:
         if screen.get_flags() and pygame.FULLSCREEN:
