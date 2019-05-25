@@ -1,9 +1,10 @@
 import pygame
 import cProfile
-from random import randint
+import random
 import re
 from math import pi, cos, sin, atan2
 
+pygame.mixer.init(8200,16,2,1024) #para musica de fondo
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -11,16 +12,16 @@ BACKGROUND = (158,75,9)
 BLOCK_SIZE = 50
 HALF_SCREEN = 200
 SCREEN_SIZE = 400
-ZOOM = 70
+ZOOM = 100
 SPRTEX_SIZE = 126
 RESOLUTION_SPRITE= 256
 
 
-wall1 = pygame.image.load('wall/wall1.png')
-wall2 = pygame.image.load('wall/wall2.png')
-wall3 = pygame.image.load('wall/wall3.png')
-wall4 = pygame.image.load('wall/wall4.png')
-wall5 = pygame.image.load('wall/wall5.jpg')
+wall1 = pygame.image.load('./wall/wall1.png')
+wall2 = pygame.image.load('./wall/wall2.png')
+wall3 = pygame.image.load('./wall/wall3.png')
+wall4 = pygame.image.load('./wall/wall4.png')
+wall5 = pygame.image.load('./wall/wall5.jpg')
 
 textures = {
   "1": wall1,
@@ -29,33 +30,37 @@ textures = {
   "4": wall4,
   "5": wall5,
 }
-hand = pygame.image.load('player/player.png')
+
+robotHand = pygame.image.load('./player/player.png')
+fire1 = pygame.image.load('./player/pop1.png')
+fire2 = pygame.image.load('./player/pop2.png')
+hand = robotHand
 
 enemies = [
   {
     "x": 95,
     "y": 95,
-    "texture": pygame.image.load('sprite/sprite2.png')
+    "texture": pygame.image.load('./sprite/sprite2.png')
   },
   {
-    "x": 280,
-    "y": 100,
-    "texture": pygame.image.load('sprite/sprite3.png')
+    "x": 180,
+    "y": 90,
+    "texture": pygame.image.load('./sprite/sprite3.png')
   },
   {
     "x": 225,
     "y": 340,
-    "texture": pygame.image.load('sprite/sprite4.png')
+    "texture": pygame.image.load('./sprite/sprite4.png')
   },
   {
     "x": 220,
     "y": 425,
-    "texture": pygame.image.load('sprite/sprite1.png')
+    "texture": pygame.image.load('./sprite/sprite1.png')
   },
   {
     "x": 320,
     "y": 420,
-    "texture": pygame.image.load('sprite/sprite2.png')
+    "texture": pygame.image.load('./sprite/sprite2.png')
   }
 ]
 
@@ -125,6 +130,7 @@ class Raycaster(object):
 
   def draw_sprite(self, sprite):
     sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"]) 
+    
     sprite_d = ((self.player["x"] - sprite["x"])**2 + (self.player["y"] - sprite["y"])**2)**0.5
     sprite_size = (HALF_SCREEN/sprite_d) * ZOOM
 
@@ -168,18 +174,16 @@ class Raycaster(object):
       self.zbuffer[i] = d
          
     for enemy in enemies:
-      self.point(enemy["x"], enemy["y"], (0, 0, 0))
+      # self.point(enemy["x"], enemy["y"], (0, 0, 0))
       self.draw_sprite(enemy)
 
     self.draw_player(SCREEN_SIZE - RESOLUTION_SPRITE - SPRTEX_SIZE, SCREEN_SIZE - RESOLUTION_SPRITE)
 
-  def po(): 
-    pygame.mixer.init(40000,16,2,1024) #para musica de fondo
-    soundsArray = ['music/son1.min','music/son2.min','music/son3.min','music/son4.min']
-    num = random.randint(0, 5)
-    sound = pygame.mixer.Sound(soundsArray[num])
-    sound.set_volume(1)
-    sound.play()
+def play_sound(): 
+  pygame.mixer.music.load("./music/son1.mid")
+  pygame.mixer.music.set_volume(0.8)
+  pygame.mixer.music.play(-1) # -1 = loop
+
 
 pygame.init()
 
@@ -194,6 +198,8 @@ r = Raycaster(screen)
 r.load_map('./map.txt')
 cProfile.run('re.compile("foo|bar")')
 
+shooting = 0 
+
 c = 0
 while True:
   screen.fill((BACKGROUND))
@@ -205,26 +211,35 @@ while True:
       pygame.display.quit()
       pygame.quit()
     if e.type == pygame.KEYDOWN:
-      if e.key == pygame.K_a:
-        r.player["a"] -= pi/60
-      elif e.key == pygame.K_d:
+      if e.key == pygame.K_LEFT: 
+        r.player["a"] -= pi/60 
+      elif e.key == pygame.K_RIGHT: 
         r.player["a"] += pi/60
-
-      elif e.key == pygame.K_RIGHT:
-        r.player["x"] += 10
-      elif e.key == pygame.K_LEFT:
-        r.player["x"] -= 10
-      elif e.key == pygame.K_UP:
-        r.player["x"] += 10 *cos(r.player["a"])
-        r.player["y"] += 10 *sin(r.player["a"])   
-      elif e.key == pygame.K_DOWN:
+      elif e.key == pygame.K_UP: 
+        r.player["x"] += 10 * cos(r.player["a"])
+        r.player["y"] += 10 * sin(r.player["a"])
+      elif e.key == pygame.K_DOWN: 
         r.player["x"] -= 10 *cos(r.player["a"])
         r.player["y"] -= 10 *sin(r.player["a"])
+      
+      elif e.key == pygame.K_SPACE: 
+        shooting = 1 
+      elif e.key == pygame.K_s: 
+        play_sound()
 
       if e.key == pygame.K_f:
         if screen.get_flags() and pygame.FULLSCREEN:
             pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
         else:
             pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
+  
+  if shooting == 0 : 
+    hand = robotHand
+  if shooting == 1 : 
+    hand = fire1 
+  if shooting == 2 : 
+    hand = fire2 
+  if shooting > 0: 
+    shooting -= 1
 
   pygame.display.flip()
